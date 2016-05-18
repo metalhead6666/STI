@@ -1,11 +1,11 @@
-
-import java.net.*;
+import javax.net.ssl.*;
 import java.io.*;
 
 
 public class ChatClient implements Runnable
 {  
-    private Socket socket              = null;
+    //private Socket socket              = null;
+    private SSLSocket socket 	   	   = null;
     private Thread thread              = null;
     private DataInputStream  console   = null;
     private DataOutputStream streamOut = null;
@@ -18,7 +18,9 @@ public class ChatClient implements Runnable
         try
         {
             // Establishes connection with server (name and port)
-            socket = new Socket(serverName, serverPort);
+            //socket = new Socket(serverName, serverPort);
+            SSLSocketFactory factory=(SSLSocketFactory) SSLSocketFactory.getDefault();
+        	socket=(SSLSocket) factory.createSocket(serverName, serverPort);
             System.out.println("Connected to server: " + socket);
             start();
         }

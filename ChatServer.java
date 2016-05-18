@@ -1,12 +1,12 @@
-
-import java.net.*;
+import javax.net.ssl.*;
 import java.io.*;
 
 
 public class ChatServer implements Runnable
 {  
 	private ChatServerThread clients[] = new ChatServerThread[20];
-	private ServerSocket server_socket = null;
+	//private ServerSocket server_socket = null;
+	private SSLServerSocket server_socket = null;
 	private Thread thread = null;
 	private int clientCount = 0;
 
@@ -14,9 +14,11 @@ public class ChatServer implements Runnable
     	{  
 		try
       		{  
+      				SSLServerSocketFactory factory=(SSLServerSocketFactory) SSLServerSocketFactory.getDefault();        			                	
             		// Binds to port and starts server
-			System.out.println("Binding to port " + port);
-            		server_socket = new ServerSocket(port);  
+					System.out.println("Binding to port " + port);
+            		//server_socket = new ServerSocket(port);  
+            		server_socket=(SSLServerSocket) factory.createServerSocket(port);
             		System.out.println("Server started: " + server_socket);
             		start();
         	}
@@ -35,7 +37,8 @@ public class ChatServer implements Runnable
             		{  
                 		// Adds new thread for new client
                 		System.out.println("Waiting for a client ..."); 
-                		addThread(server_socket.accept()); 
+                		SSLSocket sslsocket=(SSLSocket) server_socket.accept();
+                		addThread(sslsocket); 
             		}
             		catch(IOException ioexception)
             		{
