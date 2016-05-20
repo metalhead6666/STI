@@ -1,6 +1,6 @@
 import javax.net.ssl.*;
 import java.io.*;
-
+import java.net.*;
 
 public class ChatServer implements Runnable
 {  
@@ -125,7 +125,7 @@ public class ChatServer implements Runnable
         	}
     	}
     
-    	private void addThread(Socket socket)
+    	private void addThread(SSLSocket socket)
     	{  
     	    	if (clientCount < clients.length)
         	{  
@@ -166,13 +166,13 @@ public class ChatServer implements Runnable
 class ChatServerThread extends Thread
 {  
     private ChatServer       server    = null;
-    private Socket           socket    = null;
+    private SSLSocket           socket    = null;
     private int              ID        = -1;
     private DataInputStream  streamIn  =  null;
     private DataOutputStream streamOut = null;
 
    
-    public ChatServerThread(ChatServer _server, Socket _socket)
+    public ChatServerThread(ChatServer _server, SSLSocket _socket)
     {  
         super();
         server = _server;

@@ -1,5 +1,6 @@
 import javax.net.ssl.*;
 import java.io.*;
+import java.net.*;
 
 
 public class ChatClient implements Runnable
@@ -126,11 +127,11 @@ public class ChatClient implements Runnable
 
 class ChatClientThread extends Thread
 {  
-    private Socket           socket   = null;
+    private SSLSocket           socket   = null;
     private ChatClient       client   = null;
     private DataInputStream  streamIn = null;
 
-    public ChatClientThread(ChatClient _client, Socket _socket)
+    public ChatClientThread(ChatClient _client, SSLSocket _socket)
     {  
         client   = _client;
         socket   = _socket;
