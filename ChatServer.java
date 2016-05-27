@@ -15,6 +15,7 @@ public class ChatServer implements Runnable
 	private Thread thread = null;
 	private int clientCount = 0;
     private static String alias = null;
+    private static String aliasPub = null;
 
 	public ChatServer(int port)
     	{  
@@ -174,7 +175,7 @@ public class ChatServer implements Runnable
         	{  
             		// Adds thread for new accepted client
             		System.out.println("Client accepted: " + socket);
-            		clients[clientCount] = new ChatServerThread(this, socket, signature, alias);
+            		clients[clientCount] = new ChatServerThread(this, socket, signature, aliasPub);
          
            		try
             		{  
@@ -196,15 +197,16 @@ public class ChatServer implements Runnable
    	{
         	ChatServer server = null;
         
-        	if (args.length < 8)
+        	if (args.length < 9)
             		// Displays correct usage for server
-            		System.out.println("Usage: java ChatServer port crt password alias (crtclient passclient)*");
+            		System.out.println("Usage: java ChatServer port crt password aliaspriv aliaspub (crtclient passclient)*");
         	else{
                 try{
             		// Calls new server
                     keystore = KeyStore.getInstance("JKS");
                     char[] storePass = args[2].toCharArray();
                     alias = args[3];
+                    aliasPub = args[4];
 
                     //load the key store from file system
                     FileInputStream fileInputStream = new FileInputStream(args[1]);
@@ -221,10 +223,10 @@ public class ChatServer implements Runnable
                     signature = Signature.getInstance("SHA256withRSA");
                     signature.initSign(privateKey);
 
-                    clientkeys = new KeyStore[(int)((args.length - 4) / 2)];
+                    clientkeys = new KeyStore[(int)((args.length - 5) / 2)];
                     TrustManagerFactory trustManager = null;
 
-                    for(int i = 4, j = 0; i < args.length; i += 2, ++j){
+                    for(int i = 5, j = 0; i < args.length; i += 2, ++j){
                         storePass = args[i + 1].toCharArray();
                         clientkeys[j] = KeyStore.getInstance("JKS");
                         clientkeys[j].load(new FileInputStream(args[i]), storePass);

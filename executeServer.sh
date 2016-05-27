@@ -1,1 +1,1 @@
-java ChatServer 8888 plainserver.jks password plainserverkeys plainclient1.jks password plainclient2.jks password
+java ChatServer 8888 plainserver.jks password plainserverkeys serverpub clientpub1.jks password clientpub2.jks password

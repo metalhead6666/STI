@@ -18,6 +18,7 @@ public class ChatClient implements Runnable
     private static KeyStore keystore = null;
     private static KeyStore serverkey = null;
     private static String alias = null;
+    private static String aliasPub = null;
     private int periodKeys = 30000; //ms
     private Timer timer = null;
 
@@ -69,7 +70,7 @@ public class ChatClient implements Runnable
                 signature.update(dataInBytes);
                 byte[] dataInBytes2 = signature.sign();
                 
-                Message sendMessage = new Message(dataInBytes, dataInBytes2, alias);                
+                Message sendMessage = new Message(dataInBytes, dataInBytes2, aliasPub);                
 
                 // Sends message from console to server
                 streamOut.writeObject(sendMessage);
@@ -168,17 +169,18 @@ public class ChatClient implements Runnable
     public static void main(String args[])
     {
         ChatClient client = null;
-        if (args.length != 7)
+        if (args.length != 8)
             // Displays correct usage syntax on stdout
-            System.out.println("Usage: java ChatClient host port crt password alias crtserv passserv");
+            System.out.println("Usage: java ChatClient host port crt password aliaspriv aliaspub crtserv passserv");
         else{
             try{
                 // Calls new client
                 keystore = KeyStore.getInstance("JKS");
                 char[] storePass = args[3].toCharArray();
-                char[] servPass = args[6].toCharArray();
+                char[] servPass = args[7].toCharArray();
 
                 alias = args[4];
+                aliasPub = args[5];
 
                 FileInputStream fileInputStream = new FileInputStream(args[2]);
                 keystore.load(fileInputStream, storePass);
@@ -192,7 +194,7 @@ public class ChatClient implements Runnable
                 signature.initSign(privateKey);
 
                 serverkey = KeyStore.getInstance("JKS");
-                serverkey.load(new FileInputStream(args[5]), servPass);
+                serverkey.load(new FileInputStream(args[6]), servPass);
                 TrustManagerFactory trustManager = TrustManagerFactory.getInstance("SunX509");
                 trustManager.init(serverkey);
 
