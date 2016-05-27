@@ -1,6 +1,9 @@
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
+import java.security.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class ChatClient implements Runnable
@@ -11,6 +14,8 @@ public class ChatClient implements Runnable
     private DataInputStream  console   = null;
     private DataOutputStream streamOut = null;
     private ChatClientThread client    = null;
+    private int periodKeys = 5000; //milisegundos
+
 
     public ChatClient(String serverName, int serverPort)
     {  
@@ -18,10 +23,34 @@ public class ChatClient implements Runnable
         
         try
         {
+            /*
+             * Load Client Private Key
+             */
+            KeyStore clientKeys = KeyStore.getInstance("JKS");
+            clientKeys.load(new FileInputStream("demo/plainclient.jks"),"password".toCharArray());
+            KeyManagerFactory clientKeyManager = KeyManagerFactory.getInstance("SunX509");
+            clientKeyManager.init(clientKeys,"password".toCharArray());
+
+            /*
+             * Load Server Private Key
+             */
+            KeyStore serverPub = KeyStore.getInstance("JKS");
+            serverPub.load(new FileInputStream("demo/serverpub.jks"),"password".toCharArray());
+            TrustManagerFactory trustManager = TrustManagerFactory.getInstance("SunX509");
+            trustManager.init(serverPub);
+
+            /*
+             * Use keys to create SSLSoket
+             */
+            SSLContext ssl = SSLContext.getInstance("TLS");
+            ssl.init(clientKeyManager.getKeyManagers(), trustManager.getTrustManagers(), SecureRandom.getInstance("SHA1PRNG"));
+            socket = (SSLSocket)ssl.getSocketFactory().createSocket(serverName, serverPort);
+            //socket.startHandshake();
+
             // Establishes connection with server (name and port)
             //socket = new Socket(serverName, serverPort);
-            SSLSocketFactory factory=(SSLSocketFactory) SSLSocketFactory.getDefault();
-        	socket=(SSLSocket) factory.createSocket(serverName, serverPort);
+            //SSLSocketFactory factory=(SSLSocketFactory) SSLSocketFactory.getDefault();
+        	//socket=(SSLSocket) factory.createSocket(serverName, serverPort);
             System.out.println("Connected to server: " + socket);
             start();
         }
@@ -32,17 +61,21 @@ public class ChatClient implements Runnable
             System.out.println("Error establishing connection - host unknown: " + uhe.getMessage()); 
         }
       
-        catch(IOException ioexception)
+        catch(Exception ioexception)
         {  
             // Other error establishing connection
             System.out.println("Error establishing connection - unexpected exception: " + ioexception.getMessage()); 
         }
         
    }
+
     
    @SuppressWarnings("deprecation")
-   public void run()
-   {  
+   public void run(){
+
+        Timer timer = new Timer();
+        timer.schedule(new RemindTask(socket), 0, periodKeys);
+       
        while (thread != null)
        {  
            try
@@ -52,7 +85,7 @@ public class ChatClient implements Runnable
                streamOut.flush();
            }
          
-           catch(IOException ioexception)
+           catch(Exception ioexception)
            {  
                System.out.println("Error sending string to server: " + ioexception.getMessage());
                stop();
@@ -180,4 +213,22 @@ class ChatClientThread extends Thread
         }
     }
 }
+
+class RemindTask extends TimerTask {
+
+    SSLSocket socket;
+
+    RemindTask(SSLSocket socket){
+        this.socket = socket;
+    }
+
+    public void run() {
+        System.out.println("[LOG] - New handshake");
+        try{
+            socket.startHandshake();
+        }catch(Exception e){
+            System.out.println("Error starting Handshake: " + e.getMessage());
+        }
+    }
+  }
 

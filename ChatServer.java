@@ -1,5 +1,6 @@
 import javax.net.ssl.*;
 import java.io.*;
+import java.security.*;
 import java.net.*;
 
 public class ChatServer implements Runnable
@@ -14,18 +15,44 @@ public class ChatServer implements Runnable
     	{  
 		try
       		{  
-      				SSLServerSocketFactory factory=(SSLServerSocketFactory) SSLServerSocketFactory.getDefault();        			                	
-            		// Binds to port and starts server
-					System.out.println("Binding to port " + port);
-            		//server_socket = new ServerSocket(port);  
-            		server_socket=(SSLServerSocket) factory.createServerSocket(port);
-            		System.out.println("Server started: " + server_socket);
-            		start();
+  				// SSLServerSocketFactory factory=(SSLServerSocketFactory) SSLServerSocketFactory.getDefault();        			                	
+        		// Binds to port and starts server
+				System.out.println("Binding to port " + port);
+        		//server_socket = new ServerSocket(port);  
+        		//server_socket=(SSLServerSocket) factory.createServerSocket(port);
+        		//System.out.println("Server started: " + server_socket);
+
+                 /*
+                 * Load Server Private Key
+                 */
+                KeyStore serverKeys = KeyStore.getInstance("JKS");
+                serverKeys.load(new FileInputStream("demo/plainserver.jks"),"password".toCharArray());
+                KeyManagerFactory serverKeyManager = KeyManagerFactory.getInstance("SunX509");
+                serverKeyManager.init(serverKeys,"password".toCharArray());
+
+                /*
+                 * Load Client Private Key
+                 */
+                KeyStore clientPub = KeyStore.getInstance("JKS");
+                clientPub.load(new FileInputStream("demo/clientpub.jks"),"password".toCharArray());
+                TrustManagerFactory trustManager = TrustManagerFactory.getInstance("SunX509");
+                trustManager.init(clientPub);
+
+                /*
+                 * Use keys to create SSLSoket
+                 */
+                SSLContext ssl = SSLContext.getInstance("TLS");
+                ssl.init(serverKeyManager.getKeyManagers(), trustManager.getTrustManagers(), SecureRandom.getInstance("SHA1PRNG"));
+                server_socket = (SSLServerSocket)ssl.getServerSocketFactory().createServerSocket(port);
+                server_socket.setNeedClientAuth(true);
+
+
+        		start();
         	}
-      		catch(IOException ioexception)
+      		catch(Exception e)
       		{  
             		// Error binding to port
-            		System.out.println("Binding error (port=" + port + "): " + ioexception.getMessage());
+            		System.out.println("Binding error (port=" + port + "): " + e.getMessage());
         	}
     	}
     
@@ -40,9 +67,9 @@ public class ChatServer implements Runnable
                 		SSLSocket sslsocket=(SSLSocket) server_socket.accept();
                 		addThread(sslsocket); 
             		}
-            		catch(IOException ioexception)
+            		catch(Exception e)
             		{
-                		System.out.println("Accept error: " + ioexception); stop();
+                		System.out.println("Accept error: " + e); stop();
             		}
         	}
     	}
