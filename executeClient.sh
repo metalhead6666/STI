@@ -1,1 +1,1 @@
-java -Djavax.net.ssl.trustStore=bla.key -Djavax.net.ssl.trustStorePassword=stisti ChatClient localhost 8888
+java ChatClient localhost 8888 plainclient1.jks password plainclient1keys plainserver.jks password

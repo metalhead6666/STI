@@ -1,2 +1,1 @@
-#keytool -genkey -keystore yourKEYSTORE -keyalg RSA
-java -Djavax.net.ssl.keyStore=bla.key -Djavax.net.ssl.keyStorePassword=stisti -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Djavax.net.debug=ssl ChatServer 8888
+java ChatServer 8888 plainserver.jks password plainserverkeys plainclient1.jks password plainclient2.jks password
